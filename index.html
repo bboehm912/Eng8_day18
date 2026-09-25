@@ -177,17 +177,88 @@ body {
   align-items: center;
 }
 
+/* Form Styles */
 .form-group {
   margin-bottom: 22px;
   padding-bottom: 18px;
   border-bottom: 1px solid #e2e8f0;
 }
-label { font-weight: bold; margin-bottom: 6px; display: block; }
-input, textarea, select {
+
+.field-title {
+  font-weight: 700;
+  font-size: 1.05em;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+  display: block;
+}
+
+.field-subtext {
+  font-size: 0.9em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+input[type="text"],
+input[type="date"],
+textarea,
+select {
   width: 100%;
-  padding: 10px;
+  padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.95em;
+  background-color: #ffffff;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+input[type="text"]:focus,
+input[type="date"]:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.15);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.choice-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.choice-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: normal;
+  font-size: 0.95em;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.choice-label:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.choice-label input[type="radio"],
+.choice-label input[type="checkbox"] {
+  width: auto;
+  margin-top: 3px;
+  cursor: pointer;
 }
 
 .submit-btn {
@@ -200,6 +271,11 @@ input, textarea, select {
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  margin-top: 10px;
+}
+
+.submit-btn:hover {
+  background: var(--primary-dark);
 }
 
 .tab-content { display: none; }
@@ -208,6 +284,18 @@ input, textarea, select {
 .muted { color: var(--text-muted); }
 .italic { font-style: italic; }
 .subtitle { color: var(--text-muted); }
+
+/* Print Optimizations */
+@media print {
+  body { background-color: #fff; color: #000; padding: 0; }
+  .container { max-width: 100%; }
+  .nav-tabs, .deck-controls, .bellringer-box button, .submit-btn, .header-card { display: none !important; }
+  .tab-content { display: block !important; }
+  #deck-tab, #res-tab { display: none !important; }
+  #form-tab { display: block !important; box-shadow: none; border: none; padding: 0; }
+  .form-group { page-break-inside: avoid; border-bottom: 1px solid #ccc; }
+  input, textarea, select { border: 1px solid #999 !important; background: #fff !important; }
+}
 
 </style>
 </head>
@@ -280,7 +368,6 @@ input, textarea, select {
     <h3>Student Work Checkpoint & Reflection</h3>
     <form id="checkpoint-form" onsubmit="event.preventDefault(); window.print();">
       <!-- Dynamic form fields injected by script.js -->
-      <button type="submit" class="submit-btn">Print this page and turn into the Red Basket!</button>
     </form>
   </div>
 
@@ -291,17 +378,15 @@ let currentSlide = 1;
 let totalSlides = 1;
 let bellringers = [];
 
-// Stock image pool for default visual slides
 const stockImagePool = [
-  'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=300&q=80', // Turtle / Nature
-  'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=300&q=80', // Water / Earth-Diver
-  'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=300&q=80', // Ecology / Forest
-  'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=300&q=80', // Campfire / Orality
-  'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=300&q=80', // Literature / History
-  'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=300&q=80'  // Writing Workshop
+  'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=300&q=80',
+  'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=300&q=80',
+  'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=300&q=80',
+  'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=300&q=80',
+  'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=300&q=80',
+  'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=300&q=80'
 ];
 
-// Emoji fallback pool
 const iconPool = ['🐢', '🌊', '🌱', '🗣️', '☯️', '📝'];
 
 function renderSlides(slides) {
@@ -313,9 +398,7 @@ function renderSlides(slides) {
     wrapper.className = 'slide' + (index === 0 ? ' active' : '');
     wrapper.id = `slide-${index + 1}`;
 
-    // Priority 1: slide.image OR Stock Web Image
     const imageUrl = slide.image || stockImagePool[index % stockImagePool.length];
-    // Fallback: slide.icon OR Emoji Pool
     const fallbackEmoji = slide.icon || iconPool[index % iconPool.length];
 
     const visualMediaHTML = `
@@ -347,6 +430,7 @@ function renderSlides(slides) {
     stage.appendChild(wrapper);
   });
 }
+
 function initLesson(data) {
   bellringers = data.bellringers || [];
   totalSlides = (data.slides || []).length || 1;
@@ -442,7 +526,6 @@ function renderResources(resources) {
 
 function renderForm(fields) {
   const form = document.getElementById('checkpoint-form');
-  const submitBtn = form.querySelector('.submit-btn');
   form.innerHTML = '';
 
   const fieldList = Array.isArray(fields) ? fields : [];
@@ -451,34 +534,62 @@ function renderForm(fields) {
     const group = document.createElement('div');
     group.className = 'form-group';
 
-    const label = field.label || field.prompt || `Question ${field.field_id || ''}`.trim() || 'Question';
-    const id = `field_${(field.field_id || label).toString().replace(/\s+/g, '_').toLowerCase()}`;
+    const labelText = field.label || field.prompt || `Question ${field.field_id || ''}`.trim();
+    const subtextHTML = field.subtext ? `<div class="field-subtext">${field.subtext}</div>` : '';
+    const placeholderText = field.placeholder || '';
+    const requiredAttr = field.required ? 'required' : '';
+    const id = `field_${(field.field_id || labelText).toString().replace(/[^\w]/g, '_').toLowerCase()}`;
 
     let inputHTML = '';
+
     if (field.type === 'short_answer' || field.type === 'short_text' || field.type === 'text') {
-      inputHTML = `<input type="text" id="${id}" ${field.required ? 'required' : ''} />`;
+      inputHTML = `<input type="text" id="${id}" name="${id}" placeholder="${placeholderText}" ${requiredAttr} />`;
     } else if (field.type === 'date') {
-      inputHTML = `<input type="date" id="${id}" ${field.required ? 'required' : ''} />`;
+      inputHTML = `<input type="date" id="${id}" name="${id}" ${requiredAttr} />`;
     } else if (field.type === 'long_text' || field.type === 'quote_citation' || field.type === 'reflection') {
-      inputHTML = `<textarea id="${id}" rows="5" ${field.required ? 'required' : ''}></textarea>`;
+      inputHTML = `<textarea id="${id}" name="${id}" rows="4" placeholder="${placeholderText}" ${requiredAttr}></textarea>`;
     } else if (field.type === 'multiple_choice' || field.type === 'true_false') {
       const options = field.type === 'true_false' ? ['True', 'False'] : (field.options || []);
-      inputHTML = options.map((option, index) => `<label><input type="radio" id="${id}_${index}" name="${id}" value="${option}" ${field.required ? 'required' : ''} /> ${option}</label>`).join('<br/>');
-    } else if (field.type === 'checkbox') {
-      inputHTML = (field.options || []).map((option, index) => `<label><input type="checkbox" id="${id}_${index}" name="${id}" value="${option}" /> ${option}</label>`).join('<br/>');
-    } else if (field.type === 'rating_scale') {
-      inputHTML = `<select id="${id}">${(field.options || []).map(o => `<option>${o}</option>`).join('')}</select>`;
-    } else if (field.type === 'select_rubric') {
-      inputHTML = `<select id="${id}"><option>-- Select Rubric Benchmark Level --</option>${(field.options || []).map(o => `<option>${o}</option>`).join('')}</select>`;
-    } else if (field.type === 'checkbox_group' || field.type === 'multi_select') {
-      inputHTML = (field.options || []).map(o => `<label><input type="checkbox" name="${id}" value="${o}" /> ${o}</label>`).join('<br/>');
+      inputHTML = `<div class="choice-group">` + 
+        options.map((opt, i) => `
+          <label class="choice-label">
+            <input type="radio" id="${id}_${i}" name="${id}" value="${opt.replace(/"/g, '&quot;')}" ${requiredAttr} />
+            <span>${opt}</span>
+          </label>
+        `).join('') + `</div>`;
+    } else if (field.type === 'checkbox' || field.type === 'checkbox_group' || field.type === 'multi_select') {
+      const options = field.options || [];
+      inputHTML = `<div class="choice-group">` + 
+        options.map((opt, i) => `
+          <label class="choice-label">
+            <input type="checkbox" id="${id}_${i}" name="${id}[]" value="${opt.replace(/"/g, '&quot;')}" />
+            <span>${opt}</span>
+          </label>
+        `).join('') + `</div>`;
+    } else if (field.type === 'rating_scale' || field.type === 'select_rubric') {
+      const options = field.options || [];
+      const defaultPrompt = field.type === 'select_rubric' ? '-- Select Rubric Benchmark Level --' : '-- Select Assessment Rating --';
+      inputHTML = `
+        <select id="${id}" name="${id}" ${requiredAttr}>
+          <option value="">${defaultPrompt}</option>
+          ${options.map(opt => `<option value="${opt.replace(/"/g, '&quot;')}">${opt}</option>`).join('')}
+        </select>
+      `;
     }
 
-    group.innerHTML = `<label for="${id}">${label}</label>${inputHTML}`;
+    group.innerHTML = `
+      <label class="field-title" for="${id}">${labelText}</label>
+      ${subtextHTML}
+      ${inputHTML}
+    `;
     form.appendChild(group);
   });
 
-  if (submitBtn) form.appendChild(submitBtn);
+  const submitBtn = document.createElement('button');
+  submitBtn.type = 'submit';
+  submitBtn.className = 'submit-btn';
+  submitBtn.innerText = 'Print this page and turn into the Red Basket!';
+  form.appendChild(submitBtn);
 }
 
 function switchTab(key) {
@@ -496,6 +607,7 @@ function switchTab(key) {
     document.getElementById('form-tab').classList.add('active');
   }
 }
+
 window.addEventListener('DOMContentLoaded', () => initLesson({"course_title": "English 8: Beginning studies in Literature, Research and Composition", "unit": "Unit 4 - The Outsiders: Symbolism & Characterization", "day": 18, "week": 4, "weekly_focus": "Connect symbols to themes and infer traits using STEAL method (MN State ELA Standards: 8.1.4.4 & 8.1.1.1).", "bellringers": ["What does Johnny's decision to jump into the burning church reveal about his character growth?", "How does S.E. Hinton use the sunset to symbolize connection across social class divides?", "Quick-write: Is group loyalty always a positive quality, or can it lead characters to make dangerous choices?", "Identify one implicit character trait of Dally Winston using the STEAL (Actions) method."], "slides": [{"title": "Socratic Discussion Lab: Mid-Novel Analysis", "standard": "MN State ELA Standard 8.1.1.1", "bullets": ["Engage in evidence-based collaborative dialogue analyzing key decisions made in Chapters 5-7.", "Evaluate character motivations using textual evidence and student-generated Socratic questions.", "Demonstrate active listening and respectful academic critique during seminar rounds."], "callout": "Discussion Goal: Dig deeper into why characters act, not just what happens in the plot."}, {"title": "Establishing Seminar Norms & Ground Rules", "standard": "MN State ELA Standard 8.1.1.1", "bullets": ["Review guidelines for citing chapter evidence before making analytical claims.", "Practice building upon peers' arguments using academic conversational stems.", "Focus discussion on character complexity rather than simple right/wrong judgements."], "callout": "Seminar Rule: Every claim must be anchored by a specific quote or character action."}, {"title": "Character Decision Analysis: Johnny in the Park", "standard": "MN State ELA Standard 8.1.1.1", "bullets": ["Deconstruct the events at the fountain: self-defense, panic, or protective instinct?", "Infer Johnny's emotional state using textual evidence from Chapter 4.", "Debate whether Bob's death was an inevitable consequence of systemic rivalry."], "callout": "Inference Focus: What do Johnny's actions reveal about his fear vs. his loyalty to Ponyboy?"}, {"title": "Group Loyalty vs. Individual Morality", "standard": "MN State ELA Standard 8.1.4.4", "bullets": ["Examine the Greaser code: 'Stick together and don't get caught.'", "Analyze how group identity protects vulnerable characters while trapping them in violence.", "Compare Dally's cynical view of loyalty with Ponyboy's reflective perspective."], "callout": "Thematic Conflict: Does unconditional loyalty prevent characters from making moral choices?"}, {"title": "Symbolism Breakdown: The Two-Bit Switchblade", "standard": "MN State ELA Standard 8.1.4.4", "bullets": ["Analyze what Two-Bit's prized switchblade symbolizes regarding authority and pride.", "Distinguish between literal weapon use and symbolic representation of defense against poverty.", "Trace how switchblades and rings define class boundaries between Socs and Greasers."], "callout": "Symbolic Meaning: Objects carry deep emotional weight regarding social status and self-defense."}, {"title": "Symbolism Breakdown: Greaser Hair & Identity", "standard": "MN State ELA Standard 8.1.4.4", "bullets": ["Deconstruct Ponyboy's reaction to cutting and bleaching his hair in Windrixville.", "Analyze hair as the primary physical trademark and source of Greaser pride.", "Infer why losing his hair feels like losing his identity and group belonging."], "callout": "Key Symbol: Hair represents dignity and belonging when material wealth is absent."}, {"title": "STEAL Method Application: Decoding Dally Winston", "standard": "MN State ELA Standard 8.1.1.1", "bullets": ["Apply Speech, Thoughts, Effect, Actions, and Looks (STEAL) to analyze Dally's hidden vulnerability.", "Cite evidence showing Dally's protective behavior toward Johnny despite his hardened exterior.", "Infer why Dally suppresses emotional attachment to survive his environment."], "callout": "Character Depth: Hardened exteriors often mask unaddressed trauma and protective care."}, {"title": "The Church in Windrixville: Sanctuary & Loss", "standard": "MN State ELA Standard 8.1.4.4", "bullets": ["Analyze the symbolic shift from the rural church sanctuary to a destructive inferno.", "Examine how isolation in Windrixville forces Ponyboy and Johnny to reflect on their futures.", "Evaluate the significance of reading 'Gone with the Wind' during their hiding."], "callout": "Setting Transformation: The church changes from a place of refuge to a site of transformation."}, {"title": "Sunsets as Connecting Symbols across Divide", "standard": "MN State ELA Standard 8.1.4.4", "bullets": ["Compare Cherry Valance's and Ponyboy Curtis's shared appreciation of sunsets.", "Analyze how Hinton uses nature to demonstrate shared humanity despite class division.", "Infer what Cherry's willingness to talk to Ponyboy reveals about the Soc subgroup."], "callout": "Universal Theme: Real human connections can bridge artificially created social divides."}, {"title": "Socratic Dialogue Round 1: Heroism vs. Delinquency", "standard": "MN State ELA Standard 8.1.1.1", "bullets": ["Discuss prompt: 'Are Johnny, Ponyboy, and Dally heroes or juvenile delinquents?'", "Synthesize newspaper headline ('Juvenile Delinquents Turn Heroes') with character actions.", "Challenge simplified labels by analyzing environmental pressure and trauma."], "callout": "Discussion Prompt: How does public perception differ from internal reality?"}, {"title": "Socratic Dialogue Round 2: Overcoming Social Class", "standard": "MN State ELA Standard 8.1.1.1", "bullets": ["Discuss prompt: 'Can Socs and Greasers ever live in peace, or is conflict inevitable?'", "Cite character dialogue from Randy and Cherry to support predictions for the rumble.", "Evaluate whether individual choices can overcome systemic group hatred."], "callout": "Discussion Prompt: What needs to change for the cycle of rivalry to break?"}, {"title": "Discussion Lab Debrief & Form Completion", "standard": "MN State ELA Standard 8.1.1.1", "bullets": ["Summarize key insights gained from peer contributions during the Socratic lab.", "Complete self-assessment rating scale on participation and textual citation.", "Submit completed Socratic Lab Fillout organizer."], "callout": "Deliverable: Completed Socratic Lab Fillout & Mid-Novel Character Analysis."}], "resources": {"title": "Socratic Discussion Lab Resources", "description": "Graphic organizers and reflection sheets for mid-novel collaborative analysis.", "items": [{"label": "Socratic Lab Fillout PDF", "file": "Socratic_Lab_Fillout.pdf", "description": "Socratic seminar prep and reflection worksheet for recording textual evidence, peer insights, and character inferences."}]}, "form": [{"field_id": 1, "type": "short_answer", "label": "Student Name & Class Period", "placeholder": "Enter your full name and period...", "required": true}, {"field_id": 2, "type": "multiple_choice", "label": "1. Symbol Analysis (Multiple Choice)", "subtext": "What does Ponyboy's long hair primarily represent to him and the Greasers?", "options": ["A) A practical way to stay warm during cold winter months.", "B) Their cultural trademark, personal pride, and group identity.", "C) A requirement enforced by Darry and the older boys.", "D) A fashion trend copied directly from Soc athletes."], "required": true}, {"field_id": 3, "type": "multiple_choice", "label": "2. STEAL Inference Practice (Multiple Choice)", "subtext": "When Dally gives Johnny and Ponyboy money, a gun, and a plan after Bob is killed, what trait can we INFER about him?", "options": ["A) He wants them to get caught so he can look innocent.", "B) He possesses street knowledge and intense, protective loyalty toward his group.", "C) He is trying to manipulate them into giving him money later.", "D) He is indifferent to what happens to them."], "required": true}, {"field_id": 4, "type": "checkbox_group", "label": "3. Character Motivations (Multi-Select)", "subtext": "Select ALL reasons why Johnny and Ponyboy run into the burning church to save the children:", "options": ["They feel personally responsible because their discarded cigarette likely started the fire.", "Johnny feels a sense of purpose and value for the first time in his life.", "Dally ordered them to do it to win good publicity in the newspaper.", "They want to demonstrate that Greasers are capable of selflessness and bravery."]}, {"field_id": 5, "type": "short_answer", "label": "4. Citation Practice: The Sunset Symbol", "subtext": "Paraphrase or quote what Cherry says to Ponyboy about sunsets in Chapter 3.", "placeholder": "Enter quote or paraphrase...", "required": true}, {"field_id": 6, "type": "reflection", "label": "5. Socratic Synthesis: Hero vs. Delinquent", "subtext": "Why is the newspaper headline 'Juvenile Delinquents Turn Heroes' ironic when applied to Johnny and Ponyboy?", "placeholder": "Explain how society's labels fail to reflect their true character...", "required": true}, {"field_id": 7, "type": "reflection", "label": "6. Loyalty Analysis", "subtext": "In what ways does the Greaser code of loyalty both protect and harm the boys in the novel?", "placeholder": "Provide examples of positive support and negative consequences...", "required": true}, {"field_id": 8, "type": "multiple_choice", "label": "7. Figurative Language Identification", "subtext": "Ponyboy describes Dally as having 'eyes hot with a fiery hatred.' What type of imagery/device is used?", "options": ["A) Sensory Metaphor / Characterization", "B) Onomatopoeia", "C) Hyperbolic Pun", "D) Historical Allusion"], "required": true}, {"field_id": 9, "type": "reflection", "label": "8. Socratic Peer Critique Reflection", "subtext": "Describe one interesting perspective or quote shared by a peer during today's discussion lab that changed or expanded your thinking.", "placeholder": "Write down a classmate's point and your reaction to it...", "required": true}, {"field_id": 10, "type": "rating_scale", "label": "9. Self-Assessment: Discussion & Evidence", "subtext": "Rate your participation and use of textual evidence during today's Socratic lab:", "options": ["Level 4 - Advanced: I contributed insightful points, cited chapter quotes, and built upon peers' ideas.", "Level 3 - Proficient: I shared my thoughts using plot evidence and listened actively.", "Level 2 - Developing: I answered questions but didn't refer back to specific novel events.", "Level 1 - Beginning: I listened but did not share or complete my lab notes."], "required": true}]}));
 </script>
 </body>
